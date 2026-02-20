@@ -1,0 +1,11 @@
+lepackage\mongo\documents\Appunto.class
+lepackage\mongo\varie\Sedi.class
+lepackage\mongo\documents\Indirizzo.class
+lepackage\mongo\MongoApplication.class
+lepackage\mongo\controllers\MainController.class
+lepackage\mongo\repositories\UtenteRepository.class
+lepackage\mongo\documents\Voti.class
+lepackage\mongo\varie\Role.class
+lepackage\mongo\documents\Utente.class
+lepackage\mongo\services\UtenteService.class
+lepackage\mongo\documents\Materia.class
