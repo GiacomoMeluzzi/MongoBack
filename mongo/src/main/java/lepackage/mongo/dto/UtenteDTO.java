@@ -26,6 +26,8 @@ public class UtenteDTO implements Serializable {
 	private Role role;
 	@EqualsAndHashCode.Exclude
 	private String[] indirizziIds;
+	@EqualsAndHashCode.Exclude
+	private String[] materieIds;
 	
 	public UtenteDTO(String email, Role role, String username) {
 		super();
@@ -48,6 +50,7 @@ public class UtenteDTO implements Serializable {
 		utente.setUsername(username);
 		utente.setPassword(password);
 		utente.setIndirizziIds(indirizziIds);
+		utente.setMaterieIds(materieIds);
 		System.out.println("Utente DTO trasfromato in entità.");
 		return utente;
 		} catch (NullPointerException e) {

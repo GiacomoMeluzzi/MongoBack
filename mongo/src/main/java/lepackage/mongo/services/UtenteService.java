@@ -13,26 +13,34 @@ import com.mongodb.MongoException;
 import lepackage.mongo.documents.Utente;
 import lepackage.mongo.dto.MateriaConIndirizzoDTO;
 import lepackage.mongo.dto.UtenteDTO;
+import lepackage.mongo.exceptions.EmptyFieldsException;
 import lepackage.mongo.exceptions.NotValidException;
 import lepackage.mongo.exceptions.UserNotFoundException;
+import lepackage.mongo.repositories.UtenteMongoRepositoryImpl;
 import lepackage.mongo.repositories.UtenteRepository;
 import lepackage.mongo.utilities.UtilityClass;
 
 @Service
 public class UtenteService {
-	
-	private UtenteRepository repo;
-	
-	public UtenteService(UtenteRepository repo) {
-		this.repo = repo;
+
+	private UtenteRepository utenteRepo;
+	private UtenteMongoRepositoryImpl utenteMongoRepo;
+	private IndirizzoService indirizzoService;
+
+	public UtenteService(UtenteRepository utenteRepo, UtenteMongoRepositoryImpl utenteMongoRepo,
+			IndirizzoService indirizzoService) {
+		this.utenteRepo = utenteRepo;
+		this.utenteMongoRepo = utenteMongoRepo;
+		this.indirizzoService = indirizzoService;
 	}
-	
-	public UtenteDTO findByUsernameAndPassword(UtenteDTO utenteCredentials) throws Exception {
+
+	public UtenteDTO findByUsernameAndPassword(UtenteDTO credenzialiUtenteDaRegistrareDTO) throws Exception {
 		try {
-			UtilityClass.regexCheck(LOGIN_REGEX_MAIL, utenteCredentials.getEmail(), "email");
-			UtilityClass.regexCheck(LOGIN_REGEX_PSW, utenteCredentials.getPassword(), "password");
+			UtilityClass.regexCheck(LOGIN_REGEX_MAIL, credenzialiUtenteDaRegistrareDTO.getEmail(), "email");
+			UtilityClass.regexCheck(LOGIN_REGEX_PSW, credenzialiUtenteDaRegistrareDTO.getPassword(), "password");
 			System.out.println("Regex a posto in login, vado a DB.");
-			Utente utenteDaDB = repo.findByEmailAndPassword(utenteCredentials.getEmail(), utenteCredentials.getPassword());
+			Utente utenteDaDB = utenteRepo.findUtenteByEmailAndPassword(credenzialiUtenteDaRegistrareDTO.getEmail(),
+					credenzialiUtenteDaRegistrareDTO.getPassword());
 			System.out.println("UtenteService ha recuperato le credenziali con successo.");
 			if (utenteDaDB == null) {
 				System.out.println("Utente non trovato a UtenteService.");
@@ -40,69 +48,72 @@ public class UtenteService {
 			}
 			System.out.println("Utente trovato, assemblo DTO.");
 			return new UtenteDTO(utenteDaDB);
-		} 
-		catch (UserNotFoundException e ) {
+		} catch (UserNotFoundException e) {
 			System.out.println("UtenteService, utente non trovato");
-	        throw new Exception("Errore generico in UtenteService", e);
-		}
-		catch (Exception e) {
-	        System.out.println("UtenteService lancia un'eccezione generica. -> " + e.getMessage());
-	        throw new Exception("Errore generico in UtenteService", e);
-	    }
-	}
-	
-	public boolean checkUserExists(String username, String email) throws Exception {
-		try {
-			if((repo.findByUsername(username) != null) || (repo.findByEmail(email) != null)) {
-				System.out.println("L'utente esiste già.");
-				return true;
-			}
-			System.out.println("L'utente non esiste.");
-			return false;
+			throw new Exception("Errore generico in UtenteService", e);
 		} catch (Exception e) {
-			System.out.println("Errore generico in UtenteService al check esistenza utente " + e.getMessage());
-			throw new Exception();
+			System.out.println("UtenteService lancia un'eccezione generica. -> " + e.getMessage());
+			throw new Exception("Errore generico in UtenteService", e);
 		}
 	}
-	
-	public UtenteDTO doRegister(UtenteDTO utenteDTO) throws MongoException, Exception{
+
+	public UtenteDTO doRegister(UtenteDTO utenteDaRegistrareDTO) throws Exception {
 		try {
-			UtilityClass.regexCheck(LOGIN_REGEX_MAIL, utenteDTO.getEmail(), "email");
-			UtilityClass.regexCheck(LOGIN_REGEX_USR, utenteDTO.getUsername(), "username");
-			UtilityClass.regexCheck(LOGIN_REGEX_PSW, utenteDTO.getPassword(), "password");
-			Utente utenteDaRegistrare = utenteDTO.dtoToUtente();
-			if(checkUserExists(utenteDTO.getUsername(), utenteDTO.getEmail())) {
+			UtilityClass.regexCheck(LOGIN_REGEX_MAIL, utenteDaRegistrareDTO.getEmail(), "email");
+			UtilityClass.regexCheck(LOGIN_REGEX_USR, utenteDaRegistrareDTO.getUsername(), "username");
+			UtilityClass.regexCheck(LOGIN_REGEX_PSW, utenteDaRegistrareDTO.getPassword(), "password");
+			Utente utenteDaRegistrare;
+			try {
+				utenteDaRegistrare = utenteDaRegistrareDTO.dtoToUtente();
+			} catch (Exception e) {
+				throw new Exception();
+			}
+			if (checkUserExists(utenteDaRegistrareDTO.getUsername(), utenteDaRegistrareDTO.getEmail())) {
 				throw new NotValidException("Utente già registrato!");
 			}
-			repo.save(utenteDaRegistrare);
+			if (!indirizzoService.checkIndirizziExist(utenteDaRegistrareDTO)) {
+				throw new EmptyFieldsException("Indirizzi");
+			}
+			System.out.println("Inizio inserimento materie.");
+			try {
+				for (String materiaDaRegistrareId : utenteDaRegistrareDTO.getMaterieIds()) {
+					utenteMongoRepo.salvaUtenteIdInMateria(materiaDaRegistrareId, utenteDaRegistrareDTO.getUsername());
+				}
+			} catch (Exception e) {
+				System.out.println("Errore nell'inserimento delle materie del nuovo utente.");
+				throw new Exception("In doRegister, errore inserimento materie.");
+			}
+			// chiedere transazione unica commit
+			System.out.println("Materie inserite, registro utente.");
+			utenteRepo.save(utenteDaRegistrare);
 			return new UtenteDTO(utenteDaRegistrare);
 		} catch (MongoException e) {
 			System.out.println("Eccezione Mongo a UtenteService ");
 			throw new MongoException(e.getMessage());
-		}	
-		catch (Exception e) {
-			if (e instanceof MongoException || e instanceof NotValidException) {
-				throw e;
-			}
-			System.out.println("Eccezione generica a UtenteService " + e.getMessage());
-			throw new Exception();
 		}
 	}
-	
-	public List<MateriaConIndirizzoDTO> findMateriePerProf(UtenteDTO utenteDTO) throws Exception {	
-		try {
-			if (!checkUserExists(utenteDTO.getUsername(), utenteDTO.getEmail())) {
-				throw new UserNotFoundException();
-			}
-			return repo.findMateriaPerProfessore(utenteDTO.getUsername());
-		} catch (Exception e) {
-			if (e instanceof UserNotFoundException) {
-				throw e;
-			}
-			System.out.println("Eccezione generica a findMateriePerProf " + e.getMessage());
-			throw new Exception();
+
+	public List<MateriaConIndirizzoDTO> findMateriePerProf(UtenteDTO utenteProfessore) throws Exception {
+		UtilityClass.regexCheck(LOGIN_REGEX_USR, utenteProfessore.getUsername(), "username");
+		UtilityClass.roleCheck(utenteProfessore.getRole());
+		if (utenteProfessore.getIndirizziIds() == null) {
+			throw new EmptyFieldsException("IndirizziIds");
 		}
-		
+		if (utenteProfessore.getMaterieIds() == null) {
+			throw new EmptyFieldsException("MaterieIds");
+		}
+		if (!checkUserExists(utenteProfessore.getUsername(), utenteProfessore.getEmail())) {
+			throw new UserNotFoundException();
+		}
+		return utenteRepo.findMateriaPerProfessore(utenteProfessore.getUsername());
 	}
-	
+
+	private boolean checkUserExists(String usernameDaControllare, String emailDaControllarea) {
+		if ((utenteRepo.findUtenteByUsername(usernameDaControllare) != null) || (utenteRepo.findUtenteByEmail(emailDaControllarea) != null)) {
+			System.out.println("L'utente esiste già.");
+			return true;
+		}
+		System.out.println("L'utente non esiste.");
+		return false;
+	}
 }

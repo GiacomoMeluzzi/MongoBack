@@ -7,17 +7,20 @@ import org.springframework.data.mongodb.core.aggregation.Aggregation;
 import org.springframework.data.mongodb.core.aggregation.AggregationResults;
 import org.springframework.data.mongodb.core.aggregation.Fields;
 import org.springframework.data.mongodb.core.query.Criteria;
+import org.springframework.data.mongodb.core.query.Query;
+import org.springframework.data.mongodb.core.query.Update;
 import org.springframework.stereotype.Repository;
 
+import lepackage.mongo.documents.Materia;
 import lepackage.mongo.dto.MateriaConIndirizzoDTO;
 import lepackage.mongo.varie.Role;
 
 @Repository
-public class ProfessoreRepositoryImpl implements ProfessoreRepository {
+public class UtenteMongoRepositoryImpl implements UtenteMongoRepository {
 
 	private final MongoTemplate mongoTemplate;
 	
-	public ProfessoreRepositoryImpl(MongoTemplate mongoTemplate) {
+	public UtenteMongoRepositoryImpl(MongoTemplate mongoTemplate) {
 		this.mongoTemplate = mongoTemplate;
 	}
 	
@@ -76,6 +79,15 @@ public class ProfessoreRepositoryImpl implements ProfessoreRepository {
 				mongoTemplate.aggregate(aggregation, "universitari", MateriaConIndirizzoDTO.class);
 		
 		return results.getMappedResults();
+	}
+
+	@Override
+	public void salvaUtenteIdInMateria(String materiaUpdateTargetId, String utenteDaSalvareId) {
+		
+		Query query = new Query(Criteria.where("_id").is(materiaUpdateTargetId));
+	    Update update = new Update().addToSet("utentiIds", utenteDaSalvareId);
+	    
+	    mongoTemplate.updateFirst(query, update, Materia.class);		
 	}
 
 }

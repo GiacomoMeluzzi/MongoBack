@@ -12,10 +12,6 @@ import lepackage.mongo.documents.Materia;
 @Repository
 public interface MateriaRepository extends MongoRepository<Materia, String>{
 
-	@Query("{ 'indirizziIds': ?0, 'utentiIds': ?1 }")
-	public Optional<List<Materia>> findMaterieUnIndirizzo(String indirizzoId, String utenteID);
-	
-	@Query("{}")
-	public Optional<List<Materia>> findMateriePiuIndirizzi(String utenteID, String[] indirizziIds);
-	
+	@Query("{'utentiIds': ?0}")
+	public Optional<List<Materia>> findMaterieStudente(String utenteId);	
 }
