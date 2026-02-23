@@ -7,6 +7,7 @@ import static lepackage.mongo.utilities.Constants.LOGIN_REGEX_USR;
 import java.util.List;
 
 import org.springframework.stereotype.Service;
+import org.springframework.transaction.annotation.Transactional;
 
 import com.mongodb.MongoException;
 
@@ -33,9 +34,13 @@ public class UtenteService {
 		this.utenteMongoRepo = utenteMongoRepo;
 		this.indirizzoService = indirizzoService;
 	}
+	
+	public List<UtenteEntity> findall() {
+		return utenteRepo.findAll();
+	}
 
 	public UtenteDTO findByUsernameAndPassword(UtenteDTO credenzialiUtenteDaRegistrareDTO) throws Exception {
-		try {
+			try {
 			UtilityClass.regexCheck(LOGIN_REGEX_MAIL, credenzialiUtenteDaRegistrareDTO.getEmail(), "email");
 			UtilityClass.regexCheck(LOGIN_REGEX_PSW, credenzialiUtenteDaRegistrareDTO.getPassword(), "password");
 			System.out.println("Regex a posto in login, vado a DB.");
@@ -48,15 +53,15 @@ public class UtenteService {
 			}
 			System.out.println("Utente trovato, assemblo DTO.");
 			return new UtenteDTO(utenteDaDB);
-		} catch (UserNotFoundException e) {
-			System.out.println("UtenteService, utente non trovato");
-			throw new Exception("Errore generico in UtenteService", e);
-		} catch (Exception e) {
-			System.out.println("UtenteService lancia un'eccezione generica. -> " + e.getMessage());
-			throw new Exception("Errore generico in UtenteService", e);
-		}
+			} 
+			//business exception			
+			catch (Exception e) {
+				System.out.println("");
+				throw e;
+			}
 	}
 
+	@Transactional
 	public UtenteDTO doRegister(UtenteDTO utenteDaRegistrareDTO) throws Exception {
 		try {
 			UtilityClass.regexCheck(LOGIN_REGEX_MAIL, utenteDaRegistrareDTO.getEmail(), "email");
@@ -83,7 +88,6 @@ public class UtenteService {
 				System.out.println("Errore nell'inserimento delle materie del nuovo utente.");
 				throw new Exception("In doRegister, errore inserimento materie.");
 			}
-			// chiedere transazione unica commit
 			System.out.println("Materie inserite, registro utente.");
 			utenteRepo.save(utenteDaRegistrare);
 			return new UtenteDTO(utenteDaRegistrare);

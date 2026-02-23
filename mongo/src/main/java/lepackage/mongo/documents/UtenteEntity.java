@@ -13,7 +13,7 @@ import lombok.Setter;
 @NoArgsConstructor
 @Getter
 @Setter
-@Document(collection ="universitari")
+@Document(collection ="utenti")
 public class UtenteEntity {
 	@Id
 	private String id;
