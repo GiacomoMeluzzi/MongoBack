@@ -11,7 +11,7 @@ import org.springframework.data.mongodb.core.query.Query;
 import org.springframework.data.mongodb.core.query.Update;
 import org.springframework.stereotype.Repository;
 
-import lepackage.mongo.documents.Materia;
+import lepackage.mongo.documents.MateriaEntity;
 import lepackage.mongo.dto.MateriaConIndirizzoDTO;
 import lepackage.mongo.varie.Role;
 
@@ -87,7 +87,7 @@ public class UtenteMongoRepositoryImpl implements UtenteMongoRepository {
 		Query query = new Query(Criteria.where("_id").is(materiaUpdateTargetId));
 	    Update update = new Update().addToSet("utentiIds", utenteDaSalvareId);
 	    
-	    mongoTemplate.updateFirst(query, update, Materia.class);		
+	    mongoTemplate.updateFirst(query, update, MateriaEntity.class);		
 	}
 
 }

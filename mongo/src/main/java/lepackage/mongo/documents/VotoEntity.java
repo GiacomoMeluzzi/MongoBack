@@ -14,9 +14,12 @@ import lombok.Setter;
 @AllArgsConstructor
 @NoArgsConstructor
 @EqualsAndHashCode
-@Document(collection="sedi")
-public class Sede {
+@Document(collection="voti")
+public class VotoEntity {
 	@Id
 	private String id;
-	private String nome;
+	private String materiaId;
+	private String studenteId;
+	private Integer voto;
+	
 }

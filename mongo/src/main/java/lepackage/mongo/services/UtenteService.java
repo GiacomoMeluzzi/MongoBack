@@ -10,7 +10,7 @@ import org.springframework.stereotype.Service;
 
 import com.mongodb.MongoException;
 
-import lepackage.mongo.documents.Utente;
+import lepackage.mongo.documents.UtenteEntity;
 import lepackage.mongo.dto.MateriaConIndirizzoDTO;
 import lepackage.mongo.dto.UtenteDTO;
 import lepackage.mongo.exceptions.EmptyFieldsException;
@@ -39,7 +39,7 @@ public class UtenteService {
 			UtilityClass.regexCheck(LOGIN_REGEX_MAIL, credenzialiUtenteDaRegistrareDTO.getEmail(), "email");
 			UtilityClass.regexCheck(LOGIN_REGEX_PSW, credenzialiUtenteDaRegistrareDTO.getPassword(), "password");
 			System.out.println("Regex a posto in login, vado a DB.");
-			Utente utenteDaDB = utenteRepo.findUtenteByEmailAndPassword(credenzialiUtenteDaRegistrareDTO.getEmail(),
+			UtenteEntity utenteDaDB = utenteRepo.findUtenteByEmailAndPassword(credenzialiUtenteDaRegistrareDTO.getEmail(),
 					credenzialiUtenteDaRegistrareDTO.getPassword());
 			System.out.println("UtenteService ha recuperato le credenziali con successo.");
 			if (utenteDaDB == null) {
@@ -62,7 +62,7 @@ public class UtenteService {
 			UtilityClass.regexCheck(LOGIN_REGEX_MAIL, utenteDaRegistrareDTO.getEmail(), "email");
 			UtilityClass.regexCheck(LOGIN_REGEX_USR, utenteDaRegistrareDTO.getUsername(), "username");
 			UtilityClass.regexCheck(LOGIN_REGEX_PSW, utenteDaRegistrareDTO.getPassword(), "password");
-			Utente utenteDaRegistrare;
+			UtenteEntity utenteDaRegistrare;
 			try {
 				utenteDaRegistrare = utenteDaRegistrareDTO.dtoToUtente();
 			} catch (Exception e) {

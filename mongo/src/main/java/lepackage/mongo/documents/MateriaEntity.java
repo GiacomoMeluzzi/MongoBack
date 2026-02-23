@@ -11,15 +11,16 @@ import lombok.Setter;
 
 @Getter
 @Setter
-@AllArgsConstructor
 @NoArgsConstructor
+@AllArgsConstructor
 @EqualsAndHashCode
-@Document(collection="voti")
-public class Voto {
+@Document(collection="materie")
+public class MateriaEntity {
+	
 	@Id
 	private String id;
-	private String materiaId;
-	private String studenteId;
-	private Integer voto;
+	private String nome;
+	private String[] indirizziIds;
+	private String[] utentiIds;
 	
-}
+}	

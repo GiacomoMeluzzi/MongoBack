@@ -4,18 +4,18 @@ import org.springframework.data.mongodb.repository.MongoRepository;
 import org.springframework.data.mongodb.repository.Query;
 import org.springframework.stereotype.Repository;
 
-import lepackage.mongo.documents.Utente;
+import lepackage.mongo.documents.UtenteEntity;
 
 @Repository
-public interface UtenteRepository extends MongoRepository<Utente, String>, UtenteMongoRepository {
+public interface UtenteRepository extends MongoRepository<UtenteEntity, String>, UtenteMongoRepository {
 	
 	@Query("{'email': ?0, 'password': ?1}")
-	public Utente findUtenteByEmailAndPassword(String email, String password);
+	public UtenteEntity findUtenteByEmailAndPassword(String email, String password);
 	
 	@Query("{'email': ?0}")
-	public Utente findUtenteByEmail(String email);
+	public UtenteEntity findUtenteByEmail(String email);
 	
 	@Query("{'username': ?0}")
-	public Utente findUtenteByUsername(String username);
+	public UtenteEntity findUtenteByUsername(String username);
 	
 }
