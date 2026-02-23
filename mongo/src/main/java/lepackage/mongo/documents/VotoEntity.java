@@ -15,7 +15,7 @@ import lombok.Setter;
 @NoArgsConstructor
 @EqualsAndHashCode
 @Document(collection="voti")
-public class Voto {
+public class VotoEntity {
 	@Id
 	private String id;
 	private String materiaId;

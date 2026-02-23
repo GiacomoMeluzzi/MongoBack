@@ -4,21 +4,23 @@ import org.springframework.data.annotation.Id;
 import org.springframework.data.mongodb.core.mapping.Document;
 
 import lombok.AllArgsConstructor;
+import lombok.EqualsAndHashCode;
 import lombok.Getter;
 import lombok.NoArgsConstructor;
 import lombok.Setter;
 
 @Getter
 @Setter
-@AllArgsConstructor
 @NoArgsConstructor
-@Document(collection="indirizzi")
-public class Indirizzo {
+@AllArgsConstructor
+@EqualsAndHashCode
+@Document(collection="materie")
+public class MateriaEntity {
 	
 	@Id
-	private String _id;
+	private String id;
 	private String nome;
-	private String[] sediIds;
-	private String[] materieIds;	
+	private String[] indirizziIds;
+	private String[] utentiIds;
 	
-}
+}	

@@ -6,7 +6,7 @@ import java.util.List;
 
 import org.springframework.stereotype.Service;
 
-import lepackage.mongo.documents.Materia;
+import lepackage.mongo.documents.MateriaEntity;
 import lepackage.mongo.dto.MateriaDTO;
 import lepackage.mongo.dto.UtenteDTO;
 import lepackage.mongo.exceptions.EmptyFieldsException;
@@ -42,7 +42,7 @@ public class MateriaService {
 		}
 
 		System.out.println("Inizio ricerca materie studente " + utenteInRicercaDTO.getUsername());
-		List<Materia> materieTrovate = repo.findMaterieStudente(utenteInRicercaDTO.getUsername())
+		List<MateriaEntity> materieTrovate = repo.findMaterieStudente(utenteInRicercaDTO.getUsername())
 				.orElseThrow(NotFoundException::new);
 		if (materieTrovate.size() == 0) {
 			System.out.println("Nessuna materia trovata.");

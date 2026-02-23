@@ -2,7 +2,7 @@ package lepackage.mongo.dto;
 
 import java.io.Serializable;
 
-import lepackage.mongo.documents.Utente;
+import lepackage.mongo.documents.UtenteEntity;
 import lepackage.mongo.varie.Role;
 import lombok.AllArgsConstructor;
 import lombok.EqualsAndHashCode;
@@ -36,16 +36,16 @@ public class UtenteDTO implements Serializable {
 		this.username = username;
 	}
 
-	public UtenteDTO (Utente retrievedUser) {
+	public UtenteDTO (UtenteEntity retrievedUser) {
 		this.username = retrievedUser.getUsername();
 		this.email = retrievedUser.getEmail();
 		this.role = retrievedUser.getRole();
 		this.password = null;
 	}
 	
-	public Utente dtoToUtente () throws Exception {
+	public UtenteEntity dtoToUtente () throws Exception {
 		try {
-		Utente utente = new Utente();
+		UtenteEntity utente = new UtenteEntity();
 		utente.setEmail(email);
 		utente.setUsername(username);
 		utente.setPassword(password);

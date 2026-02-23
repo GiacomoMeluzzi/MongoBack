@@ -1,15 +1,21 @@
 package lepackage.mongo.controllers;
 
+import java.util.ArrayList;
+import java.util.List;
+
 import org.springframework.http.HttpStatus;
+import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.PostMapping;
 import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RestController;
 
+import lepackage.mongo.documents.UtenteEntity;
 import lepackage.mongo.dto.SuperDTO;
 import lepackage.mongo.dto.UtenteDTO;
 import lepackage.mongo.exceptions.EmptyFieldsException;
 import lepackage.mongo.exceptions.IncorrectRegexException;
+import lepackage.mongo.exceptions.IndirizzoNotFoundException;
 import lepackage.mongo.exceptions.NotValidException;
 import lepackage.mongo.exceptions.UserNotFoundException;
 import lepackage.mongo.services.MateriaService;
@@ -29,6 +35,16 @@ public class MainController {
 	public MainController(UtenteService utenteService, MateriaService materiaService) {
 		this.utenteService = utenteService;
 		this.materiaService = materiaService;
+	}
+	
+	@GetMapping("/test")
+	public void test() {
+		List<UtenteEntity> utenti = new ArrayList<>();
+		utenti = utenteService.findall();
+		System.out.println("Utenti");
+		for (UtenteEntity e : utenti) {
+			System.out.println(e.getUsername());
+		}
 	}
 
 	@PostMapping("/tryLogin")
@@ -51,6 +67,9 @@ public class MainController {
 	public SuperDTO tryRegistration(@RequestBody UtenteDTO utenteDTO) {
 		try {
 			return new SuperDTO("Registrazione effettuata.", utenteService.doRegister(utenteDTO), HttpStatus.OK);
+		} catch (IndirizzoNotFoundException e) {
+			System.out.println("Indirizzo non trovato.");
+			return new SuperDTO("Errore " + e.getMessage(), null, HttpStatus.BAD_REQUEST);
 		} catch (EmptyFieldsException e) {
 			System.out.println("Indirizzi lasciati vuoti.");
 			return new SuperDTO("Errore, campo lasciato vuoto " + e.getMessage(), null, HttpStatus.BAD_REQUEST);
