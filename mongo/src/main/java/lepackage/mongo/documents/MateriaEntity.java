@@ -20,7 +20,5 @@ public class MateriaEntity {
 	@Id
 	private String id;
 	private String nome;
-	private String[] indirizziIds;
-	private String[] utentiIds;
 	
 }	

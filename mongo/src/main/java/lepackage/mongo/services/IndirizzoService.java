@@ -6,14 +6,14 @@ import lepackage.mongo.dto.UtenteDTO;
 import lepackage.mongo.exceptions.EmptyFieldsException;
 import lepackage.mongo.exceptions.IndirizzoNotFoundException;
 import lepackage.mongo.exceptions.NotValidException;
-import lepackage.mongo.repositories.IndirizzoRepository;
+import lepackage.mongo.implementations.IndirizzoRepositoryImpl;
 
 @Service
 public class IndirizzoService {
 
-	private IndirizzoRepository repo;
+	private IndirizzoRepositoryImpl repo;
 
-	public IndirizzoService(IndirizzoRepository repo) {
+	public IndirizzoService(IndirizzoRepositoryImpl repo) {
 		this.repo = repo;
 	}
 
@@ -29,7 +29,7 @@ public class IndirizzoService {
 		for (String indirizzoDaControllare : utenteDaControllareDTO.getIndirizziIds()) {
 			System.out
 					.println("Indirizzo in entrata in IndirizzoService per check esistenza: " + indirizzoDaControllare);
-			repo.findById(indirizzoDaControllare).orElseThrow(IndirizzoNotFoundException::new);
+			repo.findIndirizzoByNome(indirizzoDaControllare).orElseThrow(IndirizzoNotFoundException::new);
 			System.out.println("IndirizzoService ha validato l'esistenza dell'indirizzo.");
 		}
 		System.out.println("Controlli indirizzi in DB superati.");

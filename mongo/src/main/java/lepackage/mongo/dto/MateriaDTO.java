@@ -33,14 +33,6 @@ public class MateriaDTO implements Serializable {
 				throw new EmptyFieldsException("materie");
 			}
 			List<MateriaDTO> materieDTO = new ArrayList<MateriaDTO>();
-			for (MateriaEntity materia : materie) {
-				if (role == Role.PROFESSORE) {
-					materieDTO.add(new MateriaDTO(materia.getId(), materia.getNome(), materia.getIndirizziIds(),
-							materia.getUtentiIds()));
-				} else {
-					materieDTO.add(new MateriaDTO(materia.getId(), materia.getNome(), materia.getIndirizziIds(), null));
-				}
-			}
 			return materieDTO;
 		} catch (NullPointerException e) {
 			throw new NullPointerException();

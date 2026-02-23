@@ -21,7 +21,9 @@ public class UtenteEntity {
 	private String username;
 	private String password;
 	private Role role;
+	// uno studente può avere un solo indirizzo, e i check devono riflettere questa cosa
 	private String[] indirizziIds;
 	private String[] materieIds;
+	private String[] votiIds;
 
 }

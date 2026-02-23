@@ -17,26 +17,19 @@ import lepackage.mongo.dto.UtenteDTO;
 import lepackage.mongo.exceptions.EmptyFieldsException;
 import lepackage.mongo.exceptions.NotValidException;
 import lepackage.mongo.exceptions.UserNotFoundException;
-import lepackage.mongo.repositories.UtenteMongoRepositoryImpl;
-import lepackage.mongo.repositories.UtenteRepository;
+import lepackage.mongo.implementations.UtenteRepositoryImpl;
 import lepackage.mongo.utilities.UtilityClass;
 
 @Service
 public class UtenteService {
 
-	private UtenteRepository utenteRepo;
-	private UtenteMongoRepositoryImpl utenteMongoRepo;
+	private UtenteRepositoryImpl utenteRepo;
 	private IndirizzoService indirizzoService;
 
-	public UtenteService(UtenteRepository utenteRepo, UtenteMongoRepositoryImpl utenteMongoRepo,
+	public UtenteService(UtenteRepositoryImpl utenteRepo,
 			IndirizzoService indirizzoService) {
 		this.utenteRepo = utenteRepo;
-		this.utenteMongoRepo = utenteMongoRepo;
 		this.indirizzoService = indirizzoService;
-	}
-	
-	public List<UtenteEntity> findall() {
-		return utenteRepo.findAll();
 	}
 
 	public UtenteDTO findByUsernameAndPassword(UtenteDTO credenzialiUtenteDaRegistrareDTO) throws Exception {
@@ -79,17 +72,8 @@ public class UtenteService {
 			if (!indirizzoService.checkIndirizziExist(utenteDaRegistrareDTO)) {
 				throw new EmptyFieldsException("Indirizzi");
 			}
-			System.out.println("Inizio inserimento materie.");
-			try {
-				for (String materiaDaRegistrareId : utenteDaRegistrareDTO.getMaterieIds()) {
-					utenteMongoRepo.salvaUtenteIdInMateria(materiaDaRegistrareId, utenteDaRegistrareDTO.getUsername());
-				}
-			} catch (Exception e) {
-				System.out.println("Errore nell'inserimento delle materie del nuovo utente.");
-				throw new Exception("In doRegister, errore inserimento materie.");
-			}
 			System.out.println("Materie inserite, registro utente.");
-			utenteRepo.save(utenteDaRegistrare);
+			utenteRepo.saveUtente(utenteDaRegistrare);
 			return new UtenteDTO(utenteDaRegistrare);
 		} catch (MongoException e) {
 			System.out.println("Eccezione Mongo a UtenteService ");
@@ -97,6 +81,8 @@ public class UtenteService {
 		}
 	}
 
+	
+	//da sistemare
 	public List<MateriaConIndirizzoDTO> findMateriePerProf(UtenteDTO utenteProfessore) throws Exception {
 		UtilityClass.regexCheck(LOGIN_REGEX_USR, utenteProfessore.getUsername(), "username");
 		UtilityClass.roleCheck(utenteProfessore.getRole());
@@ -109,7 +95,7 @@ public class UtenteService {
 		if (!checkUserExists(utenteProfessore.getUsername(), utenteProfessore.getEmail())) {
 			throw new UserNotFoundException();
 		}
-		return utenteRepo.findMateriaPerProfessore(utenteProfessore.getUsername());
+		return null;
 	}
 
 	private boolean checkUserExists(String usernameDaControllare, String emailDaControllarea) {
