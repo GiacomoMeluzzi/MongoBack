@@ -4,11 +4,14 @@ import org.springframework.data.mongodb.repository.MongoRepository;
 import org.springframework.stereotype.Repository;
 
 import lepackage.mongo.documents.Utente;
-import lepackage.mongo.dto.UtenteDTO;
 
 @Repository
-public interface UtenteRepository extends MongoRepository<Utente, String>{
+public interface UtenteRepository extends MongoRepository<Utente, String>, ProfessoreRepository {
 	
-	public Utente findByUsernameAndPassword(String username, String password);
+	public Utente findByEmailAndPassword(String email, String password);
+	
+	public Utente findByEmail(String email);
+	
+	public Utente findByUsername(String username);
 	
 }

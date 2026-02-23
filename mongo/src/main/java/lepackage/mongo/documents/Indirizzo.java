@@ -1,10 +1,7 @@
 package lepackage.mongo.documents;
 
-import java.util.List;
-
 import org.springframework.data.annotation.Id;
 import org.springframework.data.mongodb.core.mapping.Document;
-import org.springframework.data.mongodb.core.mapping.DocumentReference;
 
 import lombok.AllArgsConstructor;
 import lombok.Getter;
@@ -15,13 +12,13 @@ import lombok.Setter;
 @Setter
 @AllArgsConstructor
 @NoArgsConstructor
-@Document
+@Document(collection="indirizzi")
 public class Indirizzo {
 	
 	@Id
-	private String id;
+	private String _id;
 	private String nome;
-	private String descrizione;
-	
+	private String[] sediIds;
+	private String[] materieIds;	
 	
 }

@@ -1,20 +1,26 @@
 package lepackage.mongo.documents;
 
-import java.util.List;
-
 import org.springframework.data.annotation.Id;
 import org.springframework.data.mongodb.core.mapping.Document;
 
-@Document
+import lombok.AllArgsConstructor;
+import lombok.EqualsAndHashCode;
+import lombok.Getter;
+import lombok.NoArgsConstructor;
+import lombok.Setter;
+
+@Getter
+@Setter
+@NoArgsConstructor
+@AllArgsConstructor
+@EqualsAndHashCode
+@Document(collection="materie")
 public class Materia {
 	
 	@Id
 	private String id;
 	private String nome;
-	private Utente professore;
-	private List<Utente> studenti;
-	private List<Indirizzo> indirizzi;
-	private List<Appunto> appunti;
-	private List<Voti> voti;
+	private String[] indirizziIds;
+	private String[] utentiIds;
 	
 }	
