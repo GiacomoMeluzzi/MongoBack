@@ -9,18 +9,22 @@ import org.springframework.stereotype.Service;
 
 import com.mongodb.MongoException;
 
+import lepackage.mongo.documents.MateriaEntity;
 import lepackage.mongo.documents.UtenteEntity;
 import lepackage.mongo.dto.MateriaStudentiDTO;
+import lepackage.mongo.dto.SuperDTO;
 import lepackage.mongo.dto.UtenteDTO;
 import lepackage.mongo.exceptions.BusinessException;
 import lepackage.mongo.exceptions.EmptyFieldsException;
 import lepackage.mongo.exceptions.IncorrectRegexException;
+import lepackage.mongo.exceptions.NotFoundException;
 import lepackage.mongo.exceptions.NotValidException;
 import lepackage.mongo.exceptions.UserNotFoundException;
 import lepackage.mongo.implementations.MateriaRepositoryImpl;
 import lepackage.mongo.implementations.UtenteRepositoryImpl;
-import lepackage.mongo.repositories.MateriaRepositorySpring;
+import lepackage.mongo.repositories.UtenteRepositorySpring;
 import lepackage.mongo.utilities.UtilityClass;
+import lepackage.mongo.varie.Role;
 
 @Service
 public class UtenteService {
@@ -28,14 +32,14 @@ public class UtenteService {
 	private UtenteRepositoryImpl utenteRepo;
 	private MateriaRepositoryImpl materiaRepo;
 	private IndirizzoService indirizzoService;
-	private MateriaRepositorySpring materiaSpringRepo;
+	private UtenteRepositorySpring utenteSpringRepo;
 
 	public UtenteService(UtenteRepositoryImpl utenteRepo, IndirizzoService indirizzoService,
-			MateriaRepositoryImpl materiaRepo, MateriaRepositorySpring materiaSpringRepo) {
+			MateriaRepositoryImpl materiaRepo, UtenteRepositorySpring utenteSpringRepo) {
 		this.utenteRepo = utenteRepo;
 		this.indirizzoService = indirizzoService;
 		this.materiaRepo = materiaRepo;
-		this.materiaSpringRepo = materiaSpringRepo;
+		this.utenteSpringRepo = utenteSpringRepo;
 	}
 
 	public UtenteDTO findByUsernameAndPassword(UtenteDTO credenzialiUtenteDaRegistrareDTO) throws Exception {
@@ -109,9 +113,10 @@ public class UtenteService {
 		}
 	}
 
-	// da sistemare
-	public List<MateriaStudentiDTO> findMateriePerProf(UtenteDTO utenteProfessore) throws Exception {
+	public SuperDTO findMaterieUtente(UtenteDTO utenteProfessore) throws Exception {
 		try {
+			System.out.println("Inizio controlli campi.");
+
 			UtilityClass.regexCheckUnoFinoAQuattroCampi(ONE_REGEX_ARGUMENT, LOGIN_REGEX_USR, null, null, null,
 					utenteProfessore.getUsername(), null, null, null);
 			UtenteEntity utenteTrovatoDaDB = trovaUtenteInDB(utenteProfessore);
@@ -125,23 +130,31 @@ public class UtenteService {
 				System.out.println("Errore a findMateriePerProf a MaterieIds.");
 				throw new EmptyFieldsException("MaterieIds");
 			}
-			System.out.println("Filtro materie");
-			return materiaSpringRepo.findMateriePerProfessore(utenteTrovatoDaDB.getUsername());
-		} catch (IncorrectRegexException | UserNotFoundException e) {
+			System.out.println("Controlli campi superati.");
+
+			if (utenteTrovatoDaDB.getRole() == Role.PROFESSORE) {
+				List<MateriaStudentiDTO> materieTrovatePerProfessore = utenteSpringRepo
+						.findMateriePerProfessore(utenteTrovatoDaDB.getUsername());
+				if (materieTrovatePerProfessore == null || materieTrovatePerProfessore.size() == 0) {
+					System.out.println("Nessuna materia trovata per professore.");
+					throw new NotFoundException();
+				}
+				return new SuperDTO("Materie trovate per professore.", materieTrovatePerProfessore, HttpStatus.OK);
+				
+			} else {
+				List<MateriaEntity> materieTrovatePerStudente = materiaRepo
+						.findMaterieStudente(utenteTrovatoDaDB.getUsername()).orElseThrow(NotFoundException::new);
+				if (materieTrovatePerStudente == null || materieTrovatePerStudente.size() == 0) {
+					System.out.println("Nessuna materia trovata per professore.");
+					throw new NotFoundException();
+				}
+				return new SuperDTO("Materie trovate per studente.", materieTrovatePerStudente, HttpStatus.OK);
+			}
+		} catch (IncorrectRegexException | UserNotFoundException | NotFoundException e) {
 			throw new BusinessException("Errore a findMateriaPerProf ", e.getMessage());
 		} catch (Exception e) {
 			throw e;
 		}
-	}
-
-	private boolean checkUserExists(String usernameDaControllare, String emailDaControllarea) {
-		if ((utenteRepo.findUtenteByUsername(usernameDaControllare) != null)
-				|| (utenteRepo.findUtenteByEmail(emailDaControllarea) != null)) {
-			System.out.println("L'utente esiste già.");
-			return true;
-		}
-		System.out.println("L'utente non esiste.");
-		return false;
 	}
 
 	public UtenteEntity trovaUtenteInDB(UtenteDTO utenteDaTrovare) throws UserNotFoundException {
@@ -156,6 +169,16 @@ public class UtenteService {
 		} catch (Exception e) {
 			throw e;
 		}
+	}
+
+	private boolean checkUserExists(String usernameDaControllare, String emailDaControllarea) {
+		if ((utenteRepo.findUtenteByUsername(usernameDaControllare) != null)
+				|| (utenteRepo.findUtenteByEmail(emailDaControllarea) != null)) {
+			System.out.println("L'utente esiste già.");
+			return true;
+		}
+		System.out.println("L'utente non esiste.");
+		return false;
 	}
 
 }

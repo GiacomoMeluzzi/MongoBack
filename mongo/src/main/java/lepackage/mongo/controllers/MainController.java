@@ -1,20 +1,15 @@
 package lepackage.mongo.controllers;
 
-import java.util.List;
-
 import org.springframework.http.HttpStatus;
 import org.springframework.web.bind.annotation.PostMapping;
 import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RestController;
 
-import lepackage.mongo.dto.MateriaDTO;
 import lepackage.mongo.dto.SuperDTO;
 import lepackage.mongo.dto.UtenteDTO;
 import lepackage.mongo.exceptions.BusinessException;
-import lepackage.mongo.services.MateriaService;
 import lepackage.mongo.services.UtenteService;
-import lepackage.mongo.varie.Role;
 
 @RestController
 @RequestMapping("/user")
@@ -24,11 +19,9 @@ public class MainController {
 	private boolean isLogged = true;
 
 	private UtenteService utenteService;
-	private MateriaService materiaService;
 
-	public MainController(UtenteService utenteService, MateriaService materiaService) {
+	public MainController(UtenteService utenteService) {
 		this.utenteService = utenteService;
-		this.materiaService = materiaService;
 	}
 
 	@PostMapping("/tryLogin")
@@ -65,14 +58,7 @@ public class MainController {
 			return new SuperDTO("Login richiesto per accedere a questa pagina.", null, HttpStatus.FORBIDDEN);
 		}
 		try {
-			if (utenteDTO.getRole() == Role.STUDENTE) {
-				System.out.println("Utente è studente.");
-				return new SuperDTO("Materie per studente trovate.", materiaService.findMaterieStudente(utenteDTO),
-						HttpStatus.OK);
-			}
-			System.out.println("Utente è professore.");
-			return new SuperDTO("Materie per professore trovate.", utenteService.findMateriePerProf(utenteDTO),
-					HttpStatus.OK);
+			return utenteService.findMaterieUtente(utenteDTO);
 		} catch (BusinessException e) {
 			return new SuperDTO("Errore a selectMaterieUtente", null, HttpStatus.BAD_REQUEST);
 		} catch (Exception e) {

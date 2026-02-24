@@ -18,7 +18,7 @@ import lepackage.mongo.exceptions.NotFoundException;
 import lepackage.mongo.exceptions.NotValidException;
 import lepackage.mongo.exceptions.UserNotFoundException;
 import lepackage.mongo.repositories.MateriaRepository;
-import lepackage.mongo.repositories.MateriaRepositorySpring;
+import lepackage.mongo.repositories.UtenteRepositorySpring;
 import lepackage.mongo.repositories.UtenteRepository;
 import lepackage.mongo.utilities.UtilityClass;
 
@@ -26,10 +26,10 @@ import lepackage.mongo.utilities.UtilityClass;
 public class MateriaService {
 
 	private MateriaRepository materiaRepo;
-	private MateriaRepositorySpring springRepo;
+	private UtenteRepositorySpring springRepo;
 	private UtenteService utenteService;
 
-	public MateriaService(MateriaRepository materiaRepo, MateriaRepositorySpring springRepo,
+	public MateriaService(MateriaRepository materiaRepo, UtenteRepositorySpring springRepo,
 			UtenteService utenteService) {
 		this.materiaRepo = materiaRepo;
 		this.springRepo = springRepo;

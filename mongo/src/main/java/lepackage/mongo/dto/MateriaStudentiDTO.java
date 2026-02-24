@@ -3,7 +3,6 @@ package lepackage.mongo.dto;
 import java.io.Serializable;
 import java.util.List;
 
-import lepackage.mongo.documents.UtenteEntity;
 import lombok.AllArgsConstructor;
 import lombok.EqualsAndHashCode;
 import lombok.Getter;
