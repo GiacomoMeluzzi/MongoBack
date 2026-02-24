@@ -18,7 +18,7 @@ import lombok.Setter;
 public class MateriaEntity {
 	
 	@Id
-	private String id;
+	private String _id;
 	private String nome;
 	
 }	

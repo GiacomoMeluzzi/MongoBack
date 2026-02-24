@@ -17,6 +17,6 @@ import lombok.Setter;
 @Document(collection="sedi")
 public class SedeEntity {
 	@Id
-	private String id;
+	private String _id;
 	private String nome;
 }

@@ -3,15 +3,18 @@ package lepackage.mongo.repositories;
 import java.util.List;
 import java.util.Optional;
 
-import org.springframework.data.mongodb.repository.MongoRepository;
-import org.springframework.data.mongodb.repository.Query;
 import org.springframework.stereotype.Repository;
 
 import lepackage.mongo.documents.MateriaEntity;
+import lepackage.mongo.dto.MateriaStudentiDTO;
+import lepackage.mongo.exceptions.EmptyFieldsException;
+import lepackage.mongo.exceptions.UserNotFoundException;
 
 @Repository
-public interface MateriaRepository extends MongoRepository<MateriaEntity, String>{
+public interface MateriaRepository{
 
-	@Query("{'utentiIds': ?0}")
-	public Optional<List<MateriaEntity>> findMaterieStudente(String utenteId);	
+	public Optional<List<MateriaEntity>> findMaterieStudente(String utenteUsername) throws UserNotFoundException, EmptyFieldsException;	
+	
+	public boolean checkMaterieExist(String[] nomiMaterieDaControllare) throws EmptyFieldsException;
+	
 }

@@ -20,9 +20,9 @@ public class IndirizzoRepositoryImpl implements IndirizzoRepository {
 	}
 
 	@Override
-	public Optional<IndirizzoEntity> findIndirizzoByNome(String indirizzoNome) {
+	public Optional<IndirizzoEntity> findIndirizzoById(String indirizzoId) {
         Query query = new Query(
-                Criteria.where("nome").is(indirizzoNome)
+                Criteria.where("_id").is(indirizzoId)
         );
 
         return Optional.ofNullable(

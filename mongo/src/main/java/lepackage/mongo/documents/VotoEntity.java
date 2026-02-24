@@ -17,7 +17,7 @@ import lombok.Setter;
 @Document(collection="voti")
 public class VotoEntity {
 	@Id
-	private String id;
+	private String _id;
 	private String materiaId;
 	private String studenteId;
 	private Integer voto;

@@ -16,7 +16,7 @@ import lombok.Setter;
 @Document(collection ="utenti")
 public class UtenteEntity {
 	@Id
-	private String id;
+	private String _id;
 	private String email;
 	private String username;
 	private String password;

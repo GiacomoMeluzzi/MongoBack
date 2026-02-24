@@ -1,18 +1,17 @@
 package lepackage.mongo.controllers;
 
+import java.util.List;
+
 import org.springframework.http.HttpStatus;
 import org.springframework.web.bind.annotation.PostMapping;
 import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RestController;
-	
+
+import lepackage.mongo.dto.MateriaDTO;
 import lepackage.mongo.dto.SuperDTO;
 import lepackage.mongo.dto.UtenteDTO;
-import lepackage.mongo.exceptions.EmptyFieldsException;
-import lepackage.mongo.exceptions.IncorrectRegexException;
-import lepackage.mongo.exceptions.IndirizzoNotFoundException;
-import lepackage.mongo.exceptions.NotValidException;
-import lepackage.mongo.exceptions.UserNotFoundException;
+import lepackage.mongo.exceptions.BusinessException;
 import lepackage.mongo.services.MateriaService;
 import lepackage.mongo.services.UtenteService;
 import lepackage.mongo.varie.Role;
@@ -36,34 +35,25 @@ public class MainController {
 	public SuperDTO tryLogin(@RequestBody UtenteDTO utenteDTO) {
 		try {
 			return new SuperDTO("Login effettuato!", utenteService.findByUsernameAndPassword(utenteDTO), HttpStatus.OK);
-		} catch (EmptyFieldsException e) {
-			return new SuperDTO("tryLogin " + e.getMessage(), null, HttpStatus.BAD_REQUEST);
-		} catch (IncorrectRegexException e) {
-			return new SuperDTO("Le credenziali sono state inserite in un formato non supportato " + e.getMessage(),
-					null, HttpStatus.BAD_REQUEST);
-		} catch (UserNotFoundException e) {
-			return new SuperDTO("Credenziali errate.", null, HttpStatus.FORBIDDEN);
+		} catch (BusinessException e) {
+			if (null == e.getError()) {
+				return new SuperDTO("Errore a tryLogin.", null, HttpStatus.BAD_REQUEST);
+			}
+			return new SuperDTO("Credenziali errate!", null, HttpStatus.FORBIDDEN);
 		} catch (Exception e) {
-			return new SuperDTO("Errore generico a tryLogin " + e.getMessage(), null, HttpStatus.BAD_REQUEST);
+			return new SuperDTO("Errore generico a tryLogin.", null, HttpStatus.BAD_REQUEST);
 		}
 	}
 
 	@PostMapping("/tryRegister")
-	public SuperDTO tryRegistration(@RequestBody UtenteDTO utenteDTO) {
+	public SuperDTO doRegistration(@RequestBody UtenteDTO utenteDTO) {
 		try {
-			return new SuperDTO("Registrazione effettuata.", utenteService.doRegister(utenteDTO), HttpStatus.OK);
-		} catch (IndirizzoNotFoundException e) {
-			System.out.println("Indirizzo non trovato.");
-			return new SuperDTO("Errore " + e.getMessage(), null, HttpStatus.BAD_REQUEST);
-		} catch (EmptyFieldsException e) {
-			System.out.println("Indirizzi lasciati vuoti.");
-			return new SuperDTO("Errore, campo lasciato vuoto " + e.getMessage(), null, HttpStatus.BAD_REQUEST);
-		} catch (IncorrectRegexException e) {
-			return new SuperDTO("tryRegistration " + e.getMessage(), null, HttpStatus.BAD_REQUEST);
-		} catch (NotValidException e) {
-			return new SuperDTO("tryRegistration " + e.getMessage(), null, HttpStatus.CONFLICT);
+			return new SuperDTO("Registrazione effettuata.", utenteService.doRegistration(utenteDTO), HttpStatus.OK);
+		} catch (BusinessException e) {
+			return new SuperDTO("Errore in controller a doRegistration.", null,
+					HttpStatus.BAD_REQUEST);
 		} catch (Exception e) {
-			return new SuperDTO("Errore generico in controller a tryRegistration. " + e.getMessage(), null,
+			return new SuperDTO("Errore generico in controller a doRegistration.", null,
 					HttpStatus.BAD_REQUEST);
 		}
 	}
@@ -76,19 +66,17 @@ public class MainController {
 		}
 		try {
 			if (utenteDTO.getRole() == Role.STUDENTE) {
+				System.out.println("Utente è studente.");
 				return new SuperDTO("Materie per studente trovate.", materiaService.findMaterieStudente(utenteDTO),
 						HttpStatus.OK);
 			}
+			System.out.println("Utente è professore.");
 			return new SuperDTO("Materie per professore trovate.", utenteService.findMateriePerProf(utenteDTO),
 					HttpStatus.OK);
-		} catch (EmptyFieldsException e) {
-			return new SuperDTO("selectMaterieUtente " + e.getMessage(), null, HttpStatus.BAD_REQUEST);
-		} catch (IncorrectRegexException e) {
-			return new SuperDTO("selectMaterieUtente " + e.getMessage(), null, HttpStatus.BAD_REQUEST);
-		} catch (UserNotFoundException e) {
-			return new SuperDTO("selectMaterieUtente " + e.getMessage(), null, HttpStatus.BAD_REQUEST);
+		} catch (BusinessException e) {
+			return new SuperDTO("Errore a selectMaterieUtente", null, HttpStatus.BAD_REQUEST);
 		} catch (Exception e) {
-			return new SuperDTO("Errore generico in controller a selectMaterieUtente. " + e.getMessage(), null,
+			return new SuperDTO("Errore generico in controller a selectMaterieUtente.", null,
 					HttpStatus.BAD_REQUEST);
 		}
 	}

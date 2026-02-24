@@ -1,109 +1,161 @@
 package lepackage.mongo.services;
 
-import static lepackage.mongo.utilities.Constants.LOGIN_REGEX_MAIL;
-import static lepackage.mongo.utilities.Constants.LOGIN_REGEX_PSW;
-import static lepackage.mongo.utilities.Constants.LOGIN_REGEX_USR;
+import static lepackage.mongo.utilities.Constants.*;
 
 import java.util.List;
 
+import org.springframework.http.HttpStatus;
 import org.springframework.stereotype.Service;
-import org.springframework.transaction.annotation.Transactional;
 
 import com.mongodb.MongoException;
 
 import lepackage.mongo.documents.UtenteEntity;
-import lepackage.mongo.dto.MateriaConIndirizzoDTO;
+import lepackage.mongo.dto.MateriaStudentiDTO;
 import lepackage.mongo.dto.UtenteDTO;
+import lepackage.mongo.exceptions.BusinessException;
 import lepackage.mongo.exceptions.EmptyFieldsException;
+import lepackage.mongo.exceptions.IncorrectRegexException;
 import lepackage.mongo.exceptions.NotValidException;
 import lepackage.mongo.exceptions.UserNotFoundException;
+import lepackage.mongo.implementations.MateriaRepositoryImpl;
 import lepackage.mongo.implementations.UtenteRepositoryImpl;
+import lepackage.mongo.repositories.MateriaRepositorySpring;
 import lepackage.mongo.utilities.UtilityClass;
 
 @Service
 public class UtenteService {
 
 	private UtenteRepositoryImpl utenteRepo;
+	private MateriaRepositoryImpl materiaRepo;
 	private IndirizzoService indirizzoService;
+	private MateriaRepositorySpring materiaSpringRepo;
 
-	public UtenteService(UtenteRepositoryImpl utenteRepo,
-			IndirizzoService indirizzoService) {
+	public UtenteService(UtenteRepositoryImpl utenteRepo, IndirizzoService indirizzoService,
+			MateriaRepositoryImpl materiaRepo, MateriaRepositorySpring materiaSpringRepo) {
 		this.utenteRepo = utenteRepo;
 		this.indirizzoService = indirizzoService;
+		this.materiaRepo = materiaRepo;
+		this.materiaSpringRepo = materiaSpringRepo;
 	}
 
 	public UtenteDTO findByUsernameAndPassword(UtenteDTO credenzialiUtenteDaRegistrareDTO) throws Exception {
-			try {
-			UtilityClass.regexCheck(LOGIN_REGEX_MAIL, credenzialiUtenteDaRegistrareDTO.getEmail(), "email");
-			UtilityClass.regexCheck(LOGIN_REGEX_PSW, credenzialiUtenteDaRegistrareDTO.getPassword(), "password");
+		try {
+			UtilityClass.regexCheckUnoFinoAQuattroCampi(TWO_REGEX_ARGUMENTS, LOGIN_REGEX_MAIL, LOGIN_REGEX_PSW, null,
+					null, credenzialiUtenteDaRegistrareDTO.getEmail(), credenzialiUtenteDaRegistrareDTO.getPassword(),
+					null, null);
 			System.out.println("Regex a posto in login, vado a DB.");
-			UtenteEntity utenteDaDB = utenteRepo.findUtenteByEmailAndPassword(credenzialiUtenteDaRegistrareDTO.getEmail(),
-					credenzialiUtenteDaRegistrareDTO.getPassword());
+
+			UtenteEntity utenteDaDB = utenteRepo.findUtenteByEmailAndPassword(
+					credenzialiUtenteDaRegistrareDTO.getEmail(), credenzialiUtenteDaRegistrareDTO.getPassword());
 			System.out.println("UtenteService ha recuperato le credenziali con successo.");
+
 			if (utenteDaDB == null) {
 				System.out.println("Utente non trovato a UtenteService.");
 				throw new UserNotFoundException();
 			}
 			System.out.println("Utente trovato, assemblo DTO.");
+
 			return new UtenteDTO(utenteDaDB);
-			} 
-			//business exception			
-			catch (Exception e) {
-				System.out.println("");
-				throw e;
-			}
+
+		} catch (UserNotFoundException e) {
+			throw new BusinessException("Credenziali errate!", HttpStatus.FORBIDDEN);
+		} catch (IncorrectRegexException e) {
+			System.out.println("Errore nel check regex a findByUsernameAndPassword " + e.getMessage());
+			throw new BusinessException("Errore nel check regex a findByUsernameAndPassword " + e.getMessage());
+		} catch (Exception e) {
+			System.out.println("Errore generico a findByUsernameAndPassword " + e.getMessage());
+			throw e;
+		}
 	}
 
-	@Transactional
-	public UtenteDTO doRegister(UtenteDTO utenteDaRegistrareDTO) throws Exception {
+	public UtenteDTO doRegistration(UtenteDTO utenteDaRegistrareDTO) throws Exception {
 		try {
-			UtilityClass.regexCheck(LOGIN_REGEX_MAIL, utenteDaRegistrareDTO.getEmail(), "email");
-			UtilityClass.regexCheck(LOGIN_REGEX_USR, utenteDaRegistrareDTO.getUsername(), "username");
-			UtilityClass.regexCheck(LOGIN_REGEX_PSW, utenteDaRegistrareDTO.getPassword(), "password");
-			UtenteEntity utenteDaRegistrare;
+			UtilityClass.regexCheckUnoFinoAQuattroCampi(THREE_REGEX_ARGUMENTS, LOGIN_REGEX_MAIL, LOGIN_REGEX_USR,
+					LOGIN_REGEX_PSW, null, utenteDaRegistrareDTO.getEmail(), utenteDaRegistrareDTO.getUsername(),
+					utenteDaRegistrareDTO.getPassword(), null);
+
+			UtenteEntity utenteDaRegistrare = new UtenteEntity();
 			try {
 				utenteDaRegistrare = utenteDaRegistrareDTO.dtoToUtente();
 			} catch (Exception e) {
 				throw new Exception();
 			}
+
 			if (checkUserExists(utenteDaRegistrareDTO.getUsername(), utenteDaRegistrareDTO.getEmail())) {
 				throw new NotValidException("Utente già registrato!");
 			}
 			if (!indirizzoService.checkIndirizziExist(utenteDaRegistrareDTO)) {
 				throw new EmptyFieldsException("Indirizzi");
 			}
-			System.out.println("Materie inserite, registro utente.");
+			if (!materiaRepo.checkMaterieExist(utenteDaRegistrare.getMaterieIds())) {
+				throw new NotValidException("La materia selezionata non esiste.");
+			}
+			System.out.println("Completato controllo indirizzi.");
+
 			utenteRepo.saveUtente(utenteDaRegistrare);
 			return new UtenteDTO(utenteDaRegistrare);
+
 		} catch (MongoException e) {
 			System.out.println("Eccezione Mongo a UtenteService ");
-			throw new MongoException(e.getMessage());
+			throw new BusinessException("Eccezione Mongo a UtenteService " + e.getMessage());
+		} catch (IncorrectRegexException e) {
+			System.out.println("Errore nel check regex a doRegistration " + e.getMessage());
+			throw new BusinessException("Errore nel check regex a doRegistration");
+		} catch (NotValidException | EmptyFieldsException e) {
+			System.out.println("Errore nei controlli a doRegistration " + e.getMessage());
+			throw new BusinessException("Errore nei controlli" + e.getMessage());
+		} catch (Exception e) {
+			throw e;
 		}
 	}
 
-	
-	//da sistemare
-	public List<MateriaConIndirizzoDTO> findMateriePerProf(UtenteDTO utenteProfessore) throws Exception {
-		UtilityClass.regexCheck(LOGIN_REGEX_USR, utenteProfessore.getUsername(), "username");
-		UtilityClass.roleCheck(utenteProfessore.getRole());
-		if (utenteProfessore.getIndirizziIds() == null) {
-			throw new EmptyFieldsException("IndirizziIds");
+	// da sistemare
+	public List<MateriaStudentiDTO> findMateriePerProf(UtenteDTO utenteProfessore) throws Exception {
+		try {
+			UtilityClass.regexCheckUnoFinoAQuattroCampi(ONE_REGEX_ARGUMENT, LOGIN_REGEX_USR, null, null, null,
+					utenteProfessore.getUsername(), null, null, null);
+			UtenteEntity utenteTrovatoDaDB = trovaUtenteInDB(utenteProfessore);
+			UtilityClass.roleCheck(utenteTrovatoDaDB.getRole());
+
+			if (utenteTrovatoDaDB.getIndirizziIds() == null) {
+				System.out.println("Errore a findMateriePerProf a indirizziIds.");
+				throw new EmptyFieldsException("IndirizziIds");
+			}
+			if (utenteTrovatoDaDB.getMaterieIds() == null) {
+				System.out.println("Errore a findMateriePerProf a MaterieIds.");
+				throw new EmptyFieldsException("MaterieIds");
+			}
+			System.out.println("Filtro materie");
+			return materiaSpringRepo.findMateriePerProfessore(utenteTrovatoDaDB.getUsername());
+		} catch (IncorrectRegexException | UserNotFoundException e) {
+			throw new BusinessException("Errore a findMateriaPerProf ", e.getMessage());
+		} catch (Exception e) {
+			throw e;
 		}
-		if (utenteProfessore.getMaterieIds() == null) {
-			throw new EmptyFieldsException("MaterieIds");
-		}
-		if (!checkUserExists(utenteProfessore.getUsername(), utenteProfessore.getEmail())) {
-			throw new UserNotFoundException();
-		}
-		return null;
 	}
 
 	private boolean checkUserExists(String usernameDaControllare, String emailDaControllarea) {
-		if ((utenteRepo.findUtenteByUsername(usernameDaControllare) != null) || (utenteRepo.findUtenteByEmail(emailDaControllarea) != null)) {
+		if ((utenteRepo.findUtenteByUsername(usernameDaControllare) != null)
+				|| (utenteRepo.findUtenteByEmail(emailDaControllarea) != null)) {
 			System.out.println("L'utente esiste già.");
 			return true;
 		}
 		System.out.println("L'utente non esiste.");
 		return false;
 	}
+
+	public UtenteEntity trovaUtenteInDB(UtenteDTO utenteDaTrovare) throws UserNotFoundException {
+		try {
+			UtenteEntity utenteTrovato = utenteRepo.findUtenteByUsername(utenteDaTrovare.getUsername());
+			if (utenteTrovato == null) {
+				throw new UserNotFoundException();
+			}
+			return utenteTrovato;
+		} catch (UserNotFoundException e) {
+			throw e;
+		} catch (Exception e) {
+			throw e;
+		}
+	}
+
 }

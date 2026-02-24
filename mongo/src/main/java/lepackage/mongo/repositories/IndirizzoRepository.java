@@ -9,6 +9,6 @@ import lepackage.mongo.documents.IndirizzoEntity;
 @Repository
 public interface IndirizzoRepository {
 
-	public Optional<IndirizzoEntity> findIndirizzoByNome(String indirizzoNome);
+	public Optional<IndirizzoEntity> findIndirizzoById(String indirizzoNome);
 	
 }

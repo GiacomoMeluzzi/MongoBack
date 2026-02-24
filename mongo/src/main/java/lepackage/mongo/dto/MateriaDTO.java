@@ -22,18 +22,26 @@ public class MateriaDTO implements Serializable {
 
 	private static final long serialVersionUID = 5969299433196369544L;
 
-	private String id;
+	private String _id;
 	private String nome;
-	private String[] indirizziIds;
-	private String[] utentiIds;
+	
+	public MateriaDTO (MateriaEntity materiaDaConvertire) {
+		this._id = materiaDaConvertire.get_id();
+		this.nome = materiaDaConvertire.getNome();
+	}
 
-	public static List<MateriaDTO> materieToDto(List<MateriaEntity> materie, Role role) throws EmptyFieldsException {
+	public static List<MateriaDTO> listaMaterieToListaDto(List<MateriaEntity> listaMaterieDaConvertire, Role role) throws EmptyFieldsException {
 		try {
-			if (materie == null || materie.size() == 0) {
-				throw new EmptyFieldsException("materie");
+			if (listaMaterieDaConvertire == null || listaMaterieDaConvertire.size() == 0) {
+				throw new EmptyFieldsException("lista materie");
 			}
-			List<MateriaDTO> materieDTO = new ArrayList<MateriaDTO>();
-			return materieDTO;
+			List<MateriaDTO> listaMaterieDTO = new ArrayList<MateriaDTO>();
+			
+			for (MateriaEntity materiaDaConvertire : listaMaterieDaConvertire) {
+				listaMaterieDTO.add(new MateriaDTO(materiaDaConvertire));
+			}
+			return listaMaterieDTO;
+			
 		} catch (NullPointerException e) {
 			throw new NullPointerException();
 		}
